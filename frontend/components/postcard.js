@@ -1,34 +1,66 @@
-import { Fragment } from 'react'
+import { Fragment, useContext } from 'react'
+import { useRouter } from 'next/router'
+import Image from 'next/image'
+import { gql, useMutation } from '@apollo/client'
 import { Menu, Transition } from '@headlessui/react'
-import { CodeIcon, DotsVerticalIcon, FlagIcon, StarIcon, HeartIcon as HeartSolidIcon } from '@heroicons/react/solid'
-import { HeartIcon as HeartOutlineIcon, ChatIcon } from '@heroicons/react/outline'
+import { DotsVerticalIcon } from '@heroicons/react/solid'
+import { ChatIcon, TrashIcon } from '@heroicons/react/outline'
 import moment from 'moment'
+
+import LikeButton from './likebutton'
+import { AuthContext } from '../contexts/auth'
+import { FETCH_POSTS_QUERY } from '../util/graphql'
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function PostCard({
-  post: { body, createdAt, username, likesCount, commentsCount }
-}) {
-
-  const likePost = () => {
-
+const DELETE = gql`
+  mutation DeletePost($postId: ID!) {
+    deletePost(postId: $postId)
   }
+`
 
-  const createComment = () => {
+export default function PostCard({ post }) {
 
-  }
+  const { user } = useContext(AuthContext)
+
+  const { id, body, createdAt, username, commentsCount } = post
+
+  const router = useRouter()
+
+  const [deletePost] = useMutation(DELETE, {
+    update(proxy) {
+      const data = proxy.readQuery({
+        query: FETCH_POSTS_QUERY
+      })
+      proxy.writeQuery({
+        query: FETCH_POSTS_QUERY,
+        data: {
+          ...data,
+          getPosts: data.getPosts.filter(post => post.id !== id)
+        }
+      })
+    },
+    variables: {
+      postId: id
+    }
+  })
 
   return (
-    <div className="bg-stack-2 px-4 py-5 sm:px-6 rounded-lg w-full flex-1 flex flex-col justify-between">
+    <div
+      className="bg-stack-2 px-4 py-5 sm:px-6 rounded-lg w-full flex-1 flex flex-col justify-between hover:cursor-pointer"
+      onClick={() => router.push(`/posts/${id}`)}
+    >
       {/* post header */}
       <div className="flex space-x-3">
-        <div className="flex-shrink-0">
-          <img
-            className="h-10 w-10 rounded-full border-b-2 border-primary"
+        <div className="flex-shrink-0 w-10 h-10 relative rounded-full border-b-2 border-primary">
+          <Image
+            className="rounded-full"
             src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
             alt=""
+            layout="fill"
+            objectFit="cover"
           />
         </div>
         <div className="min-w-0 flex-1 items-center">
@@ -42,7 +74,10 @@ export default function PostCard({
         <div className="flex-shrink-0 self-center flex">
           <Menu as="div" className="relative z-30 inline-block text-left">
             <div>
-              <Menu.Button className="-m-2 p-2 rounded-full flex items-center text-gray-400 hover:text-gray-600">
+              <Menu.Button
+                className="-m-2 p-2 rounded-full flex items-center text-gray-400 hover:text-gray-600"
+                onClick={e => e.stopPropagation()}
+              >
                 <span className="sr-only">Open options</span>
                 <DotsVerticalIcon className="h-5 w-5" aria-hidden="true" />
               </Menu.Button>
@@ -57,50 +92,28 @@ export default function PostCard({
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                <div className="py-1">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <a
-                        href="#"
-                        className={classNames(
-                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                          'flex px-4 py-2 text-sm'
-                        )}
-                      >
-                        <StarIcon className="mr-3 h-5 w-5 text-gray-400" aria-hidden="true" />
-                        <span>Add to favorites</span>
-                      </a>
-                    )}
-                  </Menu.Item>
-                  <Menu.Item>
-                    {({ active }) => (
-                      <a
-                        href="#"
-                        className={classNames(
-                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                          'flex px-4 py-2 text-sm'
-                        )}
-                      >
-                        <CodeIcon className="mr-3 h-5 w-5 text-gray-400" aria-hidden="true" />
-                        <span>Embed</span>
-                      </a>
-                    )}
-                  </Menu.Item>
-                  <Menu.Item>
-                    {({ active }) => (
-                      <a
-                        href="#"
-                        className={classNames(
-                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                          'flex px-4 py-2 text-sm'
-                        )}
-                      >
-                        <FlagIcon className="mr-3 h-5 w-5 text-gray-400" aria-hidden="true" />
-                        <span>Report content</span>
-                      </a>
-                    )}
-                  </Menu.Item>
+              <Menu.Items
+                className="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-stack-1"
+                style={{ boxShadow: 'rgb(255 255 255 / 20%) 0px 0px 15px, rgb(255 255 255 / 15%) 0px 0px 3px 1px' }}
+              >
+                <div>
+                  {user && user.name === username && (
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          type="button"
+                          className={classNames(
+                            active ? 'bg-stack-3' : '',
+                            'w-full flex px-4 text-sm text-red-600 items-center'
+                          )}
+                          onClick={() => deletePost(id)}
+                        >
+                          <TrashIcon className="h-8 w-8 mr-1 p-1.5 bg-transparent hover:bg-stack-3 rounded-full" aria-hidden="true" />
+                          Delete
+                        </button>
+                      )}
+                    </Menu.Item>
+                  )}
                 </div>
               </Menu.Items>
             </Transition>
@@ -113,18 +126,15 @@ export default function PostCard({
 
       {/* likes & comments */}
       <div className="flex justify-start gap-4">
-        <button
-          type="button"
-          className="inline-flex items-center p-1 border border-transparent rounded-full shadow-sm text-xs text-primary hover:text-current"
-          onClick={likePost}
-        >
-          <HeartOutlineIcon className="h-8 w-8 mr-1 p-1.5 bg-transparent hover:bg-stack-3 rounded-full" aria-hidden="true" />
-          {likesCount}
-        </button>
+        <LikeButton user={user} post={post} />
+
         <button
           type="button"
           className="inline-flex items-center p-1 border border-transparent rounded-full shadow-sm text-xs text-primary hover:text-teal-500"
-          onClick={createComment}
+          onClick={e => {
+            e.stopPropagation();
+            console.log('COMMENT')
+          }}
         >
           <ChatIcon className="h-8 w-8 mr-1 p-1.5 bg-transparent hover:bg-stack-3 rounded-full" aria-hidden="true" />
           {commentsCount}

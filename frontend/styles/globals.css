@@ -9,3 +9,9 @@ body {
   display: flex;
   justify-content: center;
 }
+
+#__next {
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+}

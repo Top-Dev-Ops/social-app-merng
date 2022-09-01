@@ -17,10 +17,10 @@ export default function Layout({ children }) {
   }, [])
 
   return (
-    <div className="bg-stack-1 max-w-7xl min-h-screen relative flex justify-center items-start">
+    <div className="bg-stack-1 max-w-7xl min-h-screen relative flex flex-row w-full justify-center items-start">
       <Navbar />
 
-      <div className="pt-16 w-full">
+      <div className="pt-16 flex flex-row justify-center w-full h-full">
         {children}
       </div>
     </div>
