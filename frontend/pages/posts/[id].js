@@ -1,6 +1,5 @@
 import { useState, useContext } from 'react'
 import { useRouter } from 'next/router'
-import Image from 'next/image'
 import { gql, useQuery } from '@apollo/client'
 import { ChevronDoubleLeftIcon } from '@heroicons/react/solid'
 

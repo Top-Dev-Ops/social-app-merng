@@ -3,9 +3,12 @@ import Image from 'next/image'
 import { Dialog, Transition } from '@headlessui/react'
 import { XIcon } from '@heroicons/react/outline'
 
+import Divider from './divider'
+
 export default function Comments({ open, setOpen, post }) {
 
   const { username, createdAt, comments } = post
+  console.log(comments)
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -23,7 +26,7 @@ export default function Comments({ open, setOpen, post }) {
                 leaveTo="translate-x-full"
               >
                 <Dialog.Panel className="pointer-events-auto w-screen max-w-sm">
-                  <div className="flex h-full flex-col overflow-y-scroll bg-stack-2 py-6 shadow-xl">
+                  <div className="flex h-full flex-col overflow-y-scroll bg-stack-2 py-6 shadow-xl gap-16">
                     <div className="px-4 sm:px-6">
                       <div className="flex items-start justify-between">
                         <Dialog.Title className="text-lg font-medium text-gray-900">
@@ -56,11 +59,32 @@ export default function Comments({ open, setOpen, post }) {
                       </div>
                     </div>
                     <div className="relative mt-6 flex-1 px-4 sm:px-6">
-                      {/* Replace with your content */}
-                      <div className="absolute inset-0 px-4 sm:px-6">
-                        <div className="h-full border-2 border-dashed border-gray-200" aria-hidden="true" />
-                      </div>
-                      {/* /End replace */}
+                      <Divider direction="horizontal" />
+                      {comments.map(comment => (
+                        <div
+                          key={comment.createdAt}
+                        >
+                          <div className="flex flex-row w-full gap-8 items-center py-8">
+                            <div className="relative rounded-full border-b-2 border-primary w-12 h-12 flex-shrink-0">
+                              <Image
+                                className="rounded-full"
+                                src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                                alt=""
+                                layout="fill"
+                                objectFit="cover"
+                              />
+                            </div>
+                            <div className="w-full flex flex-col gap-1">
+                              <div className="text-primary font-semibold">{comment.username}</div>
+                              <div className="text-secondary text-sm">{new Date(comment.createdAt).toLocaleString()}</div>
+                            </div>
+                          </div>
+                          <div className="text-primary mb-6">
+                            {comment.body}
+                          </div>
+                          <Divider direction="horizontal" />
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </Dialog.Panel>

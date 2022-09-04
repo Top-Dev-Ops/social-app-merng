@@ -1,4 +1,4 @@
-import { Fragment, useContext } from 'react'
+import { Fragment, useContext, useState } from 'react'
 import { useRouter } from 'next/router'
 import Image from 'next/image'
 import { gql, useMutation } from '@apollo/client'
@@ -8,6 +8,7 @@ import { ChatIcon, TrashIcon } from '@heroicons/react/outline'
 import moment from 'moment'
 
 import LikeButton from './likebutton'
+import CommentDialog from './commentdialog'
 import { AuthContext } from '../contexts/auth'
 import { FETCH_POSTS_QUERY } from '../util/graphql'
 
@@ -24,6 +25,8 @@ const DELETE = gql`
 export default function PostCard({ post }) {
 
   const { user } = useContext(AuthContext)
+
+  const [showCommentDialog, setShowCommentDialog] = useState(false)
 
   const { id, body, createdAt, username, commentsCount } = post
 
@@ -133,13 +136,19 @@ export default function PostCard({ post }) {
           className="inline-flex items-center p-1 border border-transparent rounded-full shadow-sm text-xs text-primary hover:text-teal-500"
           onClick={e => {
             e.stopPropagation();
-            console.log('COMMENT')
+            setShowCommentDialog(true)
           }}
         >
           <ChatIcon className="h-8 w-8 mr-1 p-1.5 bg-transparent hover:bg-stack-3 rounded-full" aria-hidden="true" />
           {commentsCount}
         </button>
       </div>
+
+      <CommentDialog
+        open={showCommentDialog}
+        setOpen={setShowCommentDialog}
+        id={id}
+      />
     </div>
   )
 }

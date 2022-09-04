@@ -4,6 +4,7 @@ import { gql, useQuery } from '@apollo/client'
 import PostCard from '../components/postcard'
 import PostForm from '../components/postform'
 import Divider from '../components/divider'
+import Loading from '../components/loading'
 
 import { FETCH_POSTS_QUERY } from '../util/graphql'
 
@@ -27,15 +28,17 @@ export default function Home() {
 
       <h1 className="text-primary my-4 font-bold">RECENT POSTS</h1>
 
-      <div className="grid grid-cols-3 gap-4 w-full">
-        {loading ? (
-          <h1 className="text-primary">Loading...</h1>
-        ) : (
-          data && data.getPosts && data.getPosts.map(post => (
+      {loading ? (
+        <div className="flex justify-center">
+          <Loading />
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-4 w-full">
+          {data && data.getPosts && data.getPosts.map(post => (
             <PostCard key={post.id} post={post}></PostCard>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
